@@ -13,6 +13,20 @@ Jeu de déduction en français : on te donne des indices (ville, métier, âge, 
 **Sur iPhone :** ouvrir le lien dans **Safari** → bouton Partager → **« Sur l'écran d'accueil »**.
 L'app s'installe comme une vraie application (plein écran, icône, fonctionne **hors ligne**).
 
+
+## 🃏 Mode visages (nouveau)
+
+Les 400 suspects ont maintenant un **visage dessiné** (SVG procédural, généré depuis leurs attributs) :
+- **lunettes**, **barbe**, **couleur de cheveux**, **couvre-chef** et **âge** (rides) sont visibles sur la tête
+- les autres indices (ville, métier, animal, boisson, hobby, taille) restent en texte
+
+Interactions :
+- **Clic sur une tête** = la barrer / la débarrer (elle se grise avec une croix rouge)
+- **🔍 Loupe** = visage en grand, **curseur de flou** pour isoler un détail, **gribouillage rouge** pour entourer un trait, puis **« J'accuse »**
+- Bouton **« Effacer les barres »** pour repartir à zéro
+
+Les visages sont générés côté navigateur : aucun fichier image, aucune requête réseau, ça marche **hors ligne**.
+
 ## 📱 App iOS native (SwiftUI)
 
 Sources complètes dans [`ios/`](ios/) — projet Xcode généré avec XcodeGen :

@@ -73,6 +73,9 @@
   .modal.open{display:flex}
   .sheet{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:520px;width:100%;max-height:92vh;overflow:auto}
   .sheet header{background:none;border:none;padding:14px 16px 0}
+  .lpbar{display:flex;align-items:center;gap:10px}
+  .lpbar button{padding:8px 12px}
+  .lpbar .title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sheet .title{font-weight:700;font-size:17px}
   .sheet .body{padding:10px 16px 16px}
   .stage{position:relative;margin:0 auto;max-width:320px}
@@ -132,7 +135,13 @@
 <!-- ===== LOUPE ===== -->
 <div class="modal" id="loupe">
   <div class="sheet">
-    <header><div class="title" id="lpName">—</div><div class="sub" id="lpInfo"></div></header>
+    <header>
+      <div class="lpbar">
+        <button id="lpBack">← Retour</button>
+        <div class="title" id="lpName">—</div>
+      </div>
+      <div class="sub" id="lpInfo"></div>
+    </header>
     <div class="body">
       <div class="stage" id="lpStage"></div>
       <div class="rowctl">
@@ -673,9 +682,22 @@ function openLoupe(s){
   $("lpBarre").textContent = barres.has(s.id) ? "Débarrer" : "Barrer";
   $("lpAccuse").onclick = () => { closeLoupe(); accuse(s); };
   $("lpClose").onclick = closeLoupe;
+  $("lpBack").onclick = closeLoupe;
   $("loupe").classList.add("open");
+  try { history.pushState({ loupe: 1 }, ""); } catch (e) {}
 }
-function closeLoupe(){ $("loupe").classList.remove("open"); lpCurrent = null; }
+function closeLoupe(){
+  if(!$("loupe").classList.contains("open")) return;
+  $("loupe").classList.remove("open");
+  lpCurrent = null;
+  if(history.state && history.state.loupe) history.back();   // consomme l'état poussé
+}
+/* geste / bouton retour du téléphone : ferme la loupe au lieu de quitter l'app */
+window.addEventListener("popstate", () => {
+  if($("loupe").classList.contains("open")){ $("loupe").classList.remove("open"); lpCurrent = null; }
+});
+/* clic sur le fond sombre = retour */
+$("loupe").addEventListener("click", e => { if(e.target.id === "loupe") closeLoupe(); });
 
 /* ---------- boutons ---------- */
 $("next").onclick = () => newCase();

@@ -1,5 +1,5 @@
 /* Service worker — cache l'app pour un usage hors ligne */
-const CACHE = "coupable400-v3";
+const CACHE = "coupable400-v4";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest",
   "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => {

@@ -93,7 +93,7 @@
     <button id="reveal">Indice suivant</button>
     <button id="revealAll">Tous les indices</button>
     <button id="clearBarres">Effacer les barres</button>
-    <label class="sub"><input type="checkbox" id="autofilter" checked> filtrer auto</label>
+    <label class="sub"><input type="checkbox" id="autofilter"> filtrer auto (le jeu élimine à ta place)</label>
     <span class="sub" id="seedtag"></span>
   </div>
 </header>
@@ -109,7 +109,7 @@
     <div class="toolbar">
       <button id="modeVisages" class="on">🃏 Visages</button>
       <button id="modeListe">📋 Liste</button>
-      <span class="sub">clic = barrer · 🔍 = loupe</span>
+      <span class="sub">clic = barrer · 🔍 = loupe · à toi d'éliminer !</span>
     </div>
     <div id="modeGrid">
       <div class="grid" id="grid"></div>
@@ -508,7 +508,7 @@ function newCase(seed){
   state = makeCase(s);
   revealedList = []; manualFilters = {}; search = ""; accused = null; solved = false; barres = new Set();
   $("seedtag").textContent = "enquête #" + s;
-  $("reveal").disabled = false; $("revealAll").disabled = false; $("autofilter").checked = true;
+  $("reveal").disabled = false; $("revealAll").disabled = false; $("autofilter").checked = false;
   buildFilters(); render();
 }
 
@@ -534,6 +534,9 @@ function baseList(){
   for(const r of revealedList) list = list.filter(r.clue.match);
   return list;
 }
+/* nombre de personnes ENCORE COMPATIBLES avec tous les indices révélés
+   (indépendant de ce qui est affiché : le joueur peut bar rer à la main) */
+function compatible(){ return baseList().length; }
 function revealNext(){
   if(revealedList.length >= state.clues.length) return;
   const used = new Set(revealedList.map(r => r.clue.key));
@@ -612,9 +615,14 @@ function renderTable(){
 function render(){
   renderClues();
   const n = matching().length;
-  const fini = n <= 1 || revealedList.length >= state.clues.length;
+  const comp = compatible();
+  const auto = $("autofilter").checked;
+  const fini = comp <= 1 || revealedList.length >= state.clues.length;
   $("reveal").disabled = fini;
-  $("count").innerHTML = n + " / " + state.n + (n === 1 && !solved ? ' · <span class="hint">🎯 plus qu\'un seul !</span>' : '');
+  $("count").innerHTML = (auto
+      ? `affichés : <b>${n}</b> / ${state.n}`
+      : `affichés : <b>${n}</b> / ${state.n} · compatibles avec les indices : <b>${comp}</b>`)
+    + (comp === 1 && !solved ? ' · <span class="hint">🎯 plus qu\'un seul !</span>' : '');
   if(mode === "visages") renderGrid(); else renderTable();
 }
 

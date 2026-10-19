@@ -39,6 +39,18 @@ open Coupable400.xcodeproj   # puis ⌘R vers ton iPhone
 
 Détails (signature, mode développeur, compte gratuit vs payant) : [`ios/README.md`](ios/README.md)
 
+
+## 📸 Visages réels (depuis le 19/10/2026)
+
+Les 400 suspects sont maintenant de **vraies photos** (plus de dessins), chacune associée à ses **attributs réels** :
+- visibles sur la photo : **genre, lunettes, barbe, couvre-chef, couleur de cheveux (ou chauve), cravate**
+- affichés en **pictogrammes** sur la carte : **ville, métier, animal, boisson, hobby, taille**
+
+Source des photos : dataset **CelebA** (via le miroir HuggingFace `huggan/CelebA-faces-with-attributes`), images 150×184 recadrées.
+⚠️ **Ce sont des visages de personnes réelles** issues d'un dataset de recherche (usage non commercial). Si tu veux publier ce repo largement, mieux vaut remplacer ces photos par des visages synthétiques (hors droits).
+
+Les photos sont stockées dans `faces/` (~3 Mo), servies localement : le jeu reste **hors ligne** et aucune requête ne part vers l'extérieur.
+
 ## ✨ Fonctionnalités
 
 - 400 suspects générés aléatoirement (prénom, nom, genre, lunettes, cheveux, barbe, couvre-chef, âge, taille, ville, métier, animal, boisson, hobby)

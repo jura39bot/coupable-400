@@ -24,10 +24,10 @@ const NOMS = ["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","D
 const ATTRS = [
   { key: "genre",    label: "Genre",   values: ["homme", "femme"] },
   { key: "lunettes", label: "Lunettes", values: [true, false], fmt: v => v ? "oui" : "non" },
-  { key: "cheveux",  label: "Cheveux", values: ["noirs", "bruns", "blonds", "roux", "gris"] },
+  { key: "cheveux",  label: "Cheveux", values: ["noirs", "bruns", "blonds", "gris", "chauve"] },
   { key: "barbe",    label: "Barbe",   values: [true, false], fmt: v => v ? "oui" : "non" },
   { key: "chapeau",  label: "Couvre-chef", values: [true, false], fmt: v => v ? "oui" : "non" },
-  { key: "age",      label: "Âge",     values: ["25-34", "35-44", "45-54", "55-65"] },
+  { key: "cravate",  label: "Cravate", values: [true, false], fmt: v => v ? "oui" : "non" },
   { key: "taille",   label: "Taille",  values: ["<1,70 m", "1,70-1,79 m", "1,80-1,89 m", "1,90 m et +"] },
   { key: "ville",    label: "Ville",   values: ["Morez", "Saint-Claude", "Lons-le-Saunier", "Champagnole", "Besançon", "Pontarlier", "Genève", "Divonne-les-Bains"] },
   { key: "metier",   label: "Métier",  values: ["horloger", "agriculteur", "facteur", "libraire", "médecin", "restaurateur", "ingénieur", "artiste", "professeur", "gendarme"] },
@@ -42,10 +42,10 @@ function clueText(attr, val, culprit) {
   switch (attr.key) {
     case "genre":    return h ? "Le coupable est un homme." : "La coupable est une femme.";
     case "lunettes": return val ? "Un témoin l'a vu porter des lunettes." : "Un témoin affirme qu'il/elle ne porte pas de lunettes.";
-    case "cheveux":  return `Un témoin a décrit des cheveux ${val}.`;
+    case "cheveux":  return val === "chauve" ? "Le coupable est chauve (ou presque)." : `Un témoin a décrit des cheveux ${val}.`;
     case "barbe":    return val ? "Le coupable a une barbe fournie." : "Le coupable n'a pas de barbe.";
     case "chapeau":  return val ? "Il/elle portait un couvre-chef (chapeau ou casquette)." : "Il/elle était tête nue, sans chapeau ni casquette.";
-    case "age":      return `Son âge se situe entre ${val.split("-")[0]} et ${val.split("-")[1]} ans.`;
+    case "cravate":  return val ? "Le coupable porte une cravate." : "Le coupable ne porte pas de cravate.";
     case "taille":   return `Sa taille : ${val}.`;
     case "ville":    return `Le coupable habite à ${val}.`;
     case "metier":   return `Le coupable travaille comme ${val}.`;
@@ -84,8 +84,30 @@ function buildSuspects(rng, n, pools) {
   return out;
 }
 
-/* ---------- Création d'une enquête ---------- */
-function makeCase(seed, n = 400) {
+/* ---------- Création d'une enquête à partir d'une LISTE de suspects ---------- */
+function makeCase(suspects, seed) {
+  const s = (seed === undefined || seed === null) ? (Date.now() % 1000000007) : seed;
+  const rng = makeRng(s);
+  const culprit = suspects[Math.floor(rng() * suspects.length) % suspects.length];
+
+  let clues = ATTRS.map(a => ({
+    key: a.key, label: a.label, value: culprit[a.key],
+    text: clueText(a, culprit[a.key], culprit),
+    match: x => x[a.key] === culprit[a.key],
+  }));
+  for (const c of clues) c.eliminated = suspects.filter(x => !c.match(x)).length;
+  clues.sort((a, b) => b.eliminated - a.eliminated);
+
+  let remaining = suspects.slice();
+  for (const c of clues) {
+    remaining = remaining.filter(c.match);
+    c.remainingAfter = remaining.length;
+  }
+  return { seed: s, culprit, suspects, clues, n: suspects.length, check: remaining.length };
+}
+
+/* ---------- ancienne génération procédurale (auto-test uniquement) ---------- */
+function makeCaseGenerated(seed, n = 400) {
   const rng = makeRng(seed);
   const pools = { prenomsH: PRENOMS_H, prenomsF: PRENOMS_F, noms: NOMS, usedNames: new Set() };
   const suspects = buildSuspects(rng, n, pools);
@@ -121,7 +143,7 @@ function makeCase(seed, n = 400) {
 
 /* ---------- Export ---------- */
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { makeCase, ATTRS, clueText, makeRng, buildSuspects, PRENOMS_H, PRENOMS_F, NOMS };
+  module.exports = { makeCase, makeCaseGenerated, ATTRS, clueText, makeRng, buildSuspects, PRENOMS_H, PRENOMS_F, NOMS };
 }
 
 /* ---------- Auto-test (node engine.js) ---------- */
@@ -129,11 +151,11 @@ if (typeof require !== "undefined" && require.main === module) {
   let ok = 0, bad = 0, minRem = 1e9, maxRem = 0;
   const t0 = Date.now();
   for (let s = 1; s <= 300; s++) {
-    const c = makeCase(s);
+    const c = makeCaseGenerated(s);
     if (c.check === 1 && c.suspects.length === 400) ok++; else { bad++; console.log("FAIL seed", s, "check=", c.check); }
     if (c.clues[0].remainingAfter > maxRem) maxRem = c.clues[0].remainingAfter;
   }
-  const c = makeCase(42);
+  const c = makeCaseGenerated(42);
   console.log("300 enquêtes générées en", Date.now() - t0, "ms — OK:", ok, "KO:", bad);
   console.log("Exemple seed 42 — coupable:", c.culprit.prenom, c.culprit.nom);
   console.log("Indices (ordre, éliminés, restants) :");
